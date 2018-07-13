@@ -23,6 +23,7 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.wearable.companion.WatchFaceCompanion;
 import android.util.Log;
 import android.view.View;
@@ -37,6 +38,7 @@ import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 /**
@@ -64,7 +66,8 @@ public class DigitalWatchFaceCompanionConfigActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_digital_watch_face_config);
 
-        mPeerId = getIntent().getStringExtra(WatchFaceCompanion.EXTRA_PEER_ID);
+        //mPeerId = getIntent().getStringExtra(WatchFaceCompanion.EXTRA_PEER_ID);
+        mPeerId = "*";
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -74,7 +77,9 @@ public class DigitalWatchFaceCompanionConfigActivity extends Activity
         ComponentName name = getIntent().getParcelableExtra(
                 WatchFaceCompanion.EXTRA_WATCH_FACE_COMPONENT);
         TextView label = (TextView)findViewById(R.id.label);
-        label.setText(label.getText() + " (" + name.getClassName() + ")");
+        if (name != null) {
+            label.setText(label.getText() + " (" + name.getClassName() + ")");
+        }
     }
 
     @Override
@@ -96,10 +101,23 @@ public class DigitalWatchFaceCompanionConfigActivity extends Activity
         if (Log.isLoggable(TAG, Log.DEBUG)) {
             Log.d(TAG, "onConnected: " + connectionHint);
         }
-
+        Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).setResultCallback(
+                new ResultCallback<NodeApi.GetConnectedNodesResult>() {
+                    @Override
+                    public void onResult(@NonNull NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
+                        Log.d("MessageAPI","nodes :: " + getConnectedNodesResult.getNodes());
+                    }
+                }
+        );
+        {
+            Uri.Builder builder = new Uri.Builder();
+            Uri uri = builder.scheme("wear").path(PATH_WITH_FEATURE).build();
+            Wearable.DataApi.getDataItem(mGoogleApiClient, uri).setResultCallback(this);
+        }
         if (mPeerId != null) {
             Uri.Builder builder = new Uri.Builder();
-            Uri uri = builder.scheme("wear").path(PATH_WITH_FEATURE).authority(mPeerId).build();
+            //Uri uri = builder.scheme("wear").path(PATH_WITH_FEATURE).authority(mPeerId).build();
+            Uri uri = builder.scheme("wear").path(PATH_WITH_FEATURE).authority("*").build();
             Wearable.DataApi.getDataItem(mGoogleApiClient, uri).setResultCallback(this);
         } else {
             displayNoConnectedDeviceDialog();
@@ -202,6 +220,7 @@ public class DigitalWatchFaceCompanionConfigActivity extends Activity
     }
 
     private void sendConfigUpdateMessage(String configKey, int color) {
+        Log.d(TAG, "sendConfigUpdateMessage");
         if (mPeerId != null) {
             DataMap config = new DataMap();
             config.putInt(configKey, color);

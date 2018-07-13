@@ -107,6 +107,7 @@ public class DigitalWatchFaceService extends CanvasWatchFaceService {
         long mInteractiveUpdateRateMs = NORMAL_UPDATE_RATE_MS;
 
         /** Handler to update the time periodically in interactive mode. */
+        /*
         final Handler mUpdateTimeHandler = new Handler() {
             @Override
             public void handleMessage(Message message) {
@@ -126,6 +127,7 @@ public class DigitalWatchFaceService extends CanvasWatchFaceService {
                 }
             }
         };
+        */
 
         GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(DigitalWatchFaceService.this)
                 .addConnectionCallbacks(this)
@@ -224,7 +226,7 @@ public class DigitalWatchFaceService extends CanvasWatchFaceService {
 
         @Override
         public void onDestroy() {
-            mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
+            //mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             super.onDestroy();
         }
 
@@ -348,7 +350,7 @@ public class DigitalWatchFaceService extends CanvasWatchFaceService {
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
             super.onAmbientModeChanged(inAmbientMode);
-            if (Log.isLoggable(TAG, Log.DEBUG)) {
+            if (Log.isLoggable(TAG, Log.VERBOSE)) {
                 Log.d(TAG, "onAmbientModeChanged: " + inAmbientMode);
             }
             adjustPaintColorToCurrentMode(mBackgroundPaint, mInteractiveBackgroundColor,
@@ -530,10 +532,12 @@ public class DigitalWatchFaceService extends CanvasWatchFaceService {
             if (Log.isLoggable(TAG, Log.DEBUG)) {
                 Log.d(TAG, "updateTimer");
             }
+            /*
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             if (shouldTimerBeRunning()) {
                 mUpdateTimeHandler.sendEmptyMessage(MSG_UPDATE_TIME);
             }
+            */
         }
 
         /**
@@ -579,7 +583,13 @@ public class DigitalWatchFaceService extends CanvasWatchFaceService {
 
         @Override // DataApi.DataListener
         public void onDataChanged(DataEventBuffer dataEvents) {
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG,"onDataChanged");
+            }
             for (DataEvent dataEvent : dataEvents) {
+                if (Log.isLoggable(TAG, Log.DEBUG)) {
+                    Log.d(TAG, "onDataChanged: " + dataEvent.toString());
+                }
                 if (dataEvent.getType() != DataEvent.TYPE_CHANGED) {
                     continue;
                 }
